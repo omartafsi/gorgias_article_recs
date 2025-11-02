@@ -1,6 +1,6 @@
 import click
 
-from article_embedding_pipeline.data.loader import load_articles
+from article_embedding_pipeline.data_manager.loader import load_articles
 from article_embedding_pipeline.embeddings.generator import generate_article_embeddings
 from article_embedding_pipeline.embeddings.storage import save_embeddings
 from article_embedding_pipeline.ann.indexer import build_faiss_indexes

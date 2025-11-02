@@ -23,11 +23,11 @@ Usage
 import os
 from sklearn.model_selection import train_test_split
 import json
-from article_embedding_pipeline.data_loader.loader import load_articles
+from article_embedding_pipeline.data_manager.loader import load_articles
 from article_embedding_pipeline.embeddings.generator import generate_article_embeddings
 from article_embedding_pipeline.embeddings.storage import save_embeddings
 from reranker.reranker import Reranker
-from reranker.data.loader import DataLoader
+from reranker.data_loader.loader import DataLoader
 
 embeddings_out = "./results/article_embeddings.parquet"
 feedback_path = "./data/article_feedback.csv"
@@ -58,7 +58,7 @@ reranker.save_artifacts(output_dir)
 ```
 
 From CLI: 
-
+make sure to have feedback and article data available in data/
 ------------
     $ article_embedding_pipeline generate-embeddings --articles-csv ./data/help_center_articles.csv --embeddings-out ./results/article_embeddings.parquet  --faiss-index-out ./results/faiss_hc_indexes
     $ reranker train --embeddings-path ./results/article_embeddings.parquet --feedback-path ./data/article_feedback.csv  --output-dir ./artefacts

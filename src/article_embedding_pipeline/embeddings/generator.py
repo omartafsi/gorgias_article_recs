@@ -1,5 +1,5 @@
 from article_embedding_pipeline.models.embedder import EmbeddingModel
-from article_embedding_pipeline.data.preprocessing import preprocess_titles
+from article_embedding_pipeline.data_manager.preprocessing import preprocess_titles
 
 
 def generate_article_embeddings(articles, batch_size: int, model_name: str, use_gpu: bool):
