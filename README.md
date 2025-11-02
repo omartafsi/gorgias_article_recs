@@ -88,3 +88,37 @@ Project Structure
     └── noxfile.py         <- black, build, tests.               
 
 --------
+
+## Docker
+
+Build images and run jobs/services with docker-compose:
+
+```bash
+# Build all images
+docker compose build
+
+# 1) Generate embeddings job (writes to ./results)
+docker compose run --rm embeddings
+
+# 2) Train reranker job (reads ./results, writes to ./artefacts)
+docker compose run --rm reranker
+
+# 3) Start API (reads ./results and ./artefacts)
+docker compose up -d api
+
+# Test API
+curl -s -X POST "http://localhost:8080/rerank" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "help_center_id": "25171",
+        "query_embedding": [[-0.0146737,..., -0.0123929]],
+        "top_k": 5
+      }'
+# Clean
+docker compose down
+```
+
+Notes:
+- The `data/`, `results/`, and `artefacts/` folders are mounted as volumes so outputs persist.
+- You can override defaults via env vars in compose (e.g., `MODEL_NAME`, `BATCH_SIZE`).
+- For GPU, switch base images and pass `--use-gpu` (requires CUDA-capable stack). 
