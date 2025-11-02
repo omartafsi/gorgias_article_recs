@@ -31,7 +31,7 @@ from reranker.data.loader import DataLoader
 
 embeddings_out = "./results/article_embeddings.parquet"
 feedback_path = "./data/article_feedback.csv"
-output_dir = "artefacts"
+output_dir = "./artefacts"
 # Generating article embeddings
 articles = load_articles("./data/help_center_articles.csv")
 ids, help_center_ids, embeddings = generate_article_embeddings(
