@@ -1,0 +1,26 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+# System deps (git for huggingface, build essentials for some wheels)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Python deps
+COPY requirements.txt ./
+RUN pip install --upgrade pip && pip install -r requirements.txt
+
+# Copy source and install package
+COPY setup.py setup.cfg ./
+COPY src ./src
+COPY api ./api
+RUN pip install -e .
+
+# Default command accepts overrides via docker-compose
+CMD ["bash", "-lc", "article_embedding_pipeline generate-embeddings --articles-csv /app/data/help_center_articles.csv --embeddings-out /app/results/article_embeddings.parquet --faiss-index-out /app/results/faiss_hc_indexes --batch-size 32 --model-name avsolatorio/GIST-small-Embedding-v0"]
+

@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  embeddings:
+    build:
+      context: .
+      dockerfile: Dockerfile.embeddings
+    image: gorgias-article-recs/embeddings:latest
+    working_dir: /app
+    volumes:
+      - ./data:/app/data:rw
+      - ./results:/app/results:rw
+    environment:
+      - MODEL_NAME=avsolatorio/GIST-small-Embedding-v0
+      - BATCH_SIZE=32
+    command: >-
+      bash -lc "article_embedding_pipeline generate-embeddings 
+      --articles-csv /app/data/help_center_articles.csv 
+      --embeddings-out /app/results/article_embeddings.parquet 
+      --faiss-index-out /app/results/faiss_hc_indexes 
+      --batch-size $${BATCH_SIZE:-32} 
+      --model-name $${MODEL_NAME:-avsolatorio/GIST-small-Embedding-v0}"
+    restart: "no"
+
+  reranker:
+    build:
+      context: .
+      dockerfile: Dockerfile.reranker
+    image: gorgias-article-recs/reranker:latest
+    working_dir: /app
+    depends_on:
+      - embeddings
+    volumes:
+      - ./data:/app/data:rw
+      - ./results:/app/results:rw
+      - ./artefacts:/app/artefacts:rw
+    command: >-
+      bash -lc "reranker train 
+      --embeddings-path /app/results/article_embeddings.parquet 
+      --feedback-path /app/data/article_feedback.csv 
+      --output-dir /app/artefacts 
+      --test-size 0.2 
+      --n-negatives 3 
+      --score"
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: gorgias-article-recs/api:latest
+    working_dir: /app
+    depends_on:
+      - reranker
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./results:/app/results:ro
+      - ./artefacts:/app/artefacts:ro
+    environment:
+      - RERANKER_MODEL_PATH=artefacts/
+      - ARTICLE_EMB_PARQUET=results/article_embeddings.parquet
+      - FAISS_DIR=results/faiss_hc_indexes/
+    command: bash -lc "uvicorn api.main:app --host 0.0.0.0 --port 8080"
+    restart: unless-stopped
+
